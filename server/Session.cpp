@@ -19,44 +19,50 @@ void Session::start() {
 void Session::read_body()
 {
 	auto self = shared_from_this();
+
 	boost::asio::async_read(
 			socket_,
-			boost::asio::buffer(self->body_.data(), self->body_.size()),
-			[self](const boost::system::error_code& ec, std::size_t)
+			boost::asio::buffer(body_),
+			[self](const boost::system::error_code ec, std::size_t)
 			{
-				if(ec){
-					std::cout << "Client "
-							  << self->id_
-							  << " disconnected\n";
-					return
-				}
-				std::cout << "Client "
-						  << self->id_
-						  << " sent "
-						  << self->body_.size()
-						  << " butes\n";
-
+				if(ec) return;
+				
+				self->handle_packet();
+				self->read_size();
 			}
+	);
 }
 
 void Session::read_size()
 {
 	auto self = shared_from_this();
 
-	boost::asio::async_read();
-
 	boost::asio::async_read(
 			socket_,
-			boost::asio::buffer(&current_size_, sizeof(current_size_)),
-			[self](const boost::system::error_code& ec, std::size_t)
+			boost::asio::buffer(&packet_size_, sizeof(packet_size_)),
+			[self](const boost::system::error_code ec, std::size_t)
 			{
-				if(ec){ 
-					std::cout << "Client "
-							  << self->id_
-							  << "disconnected\n";
-					return;
-				}
-				self->body_.resize(self->current_size_);
+				if(ec) return;
+				
+				self->body_.resize(self->packet_size_);
 				self->read_body();
 			}
+	);
+}
+void Session::handle_packet()
+{
+	PacketType type = static_cast<PacketType>(body_[0]);
+
+	switch(type)
+	{
+		case PacketType::Ping:
+			std::cout << "Ping from client " << id_ << "\n";
+			break;
+		case PacketType::UploadChunk:
+			std::cout << "Upload chunk from client " id_ << "\n";
+			break;
+		default:
+			std::cout<< "Unknown packet from client " >> id_ << "\n";
+			break;
+	}
 }

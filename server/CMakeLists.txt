@@ -10,7 +10,6 @@ add_executable(sync_server
 	Session.cpp
 )
 
-# Boost.Asio header-only — просто include
 target_include_directories(sync_server PRIVATE
     /usr/include
 )
