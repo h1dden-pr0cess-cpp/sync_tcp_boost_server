@@ -1,6 +1,6 @@
 CMakeFiles/sync_server.dir/main.cpp.o: \
- /home/samsapi0l/repos/sync_server/main.cpp /usr/include/stdc-predef.h \
- /usr/include/boost/asio.hpp \
+ /home/samsapi0l/repos/sync_server/server/main.cpp \
+ /usr/include/stdc-predef.h /usr/include/boost/asio.hpp \
  /usr/include/boost/asio/any_completion_executor.hpp \
  /usr/include/boost/asio/detail/config.hpp /usr/include/boost/config.hpp \
  /usr/include/boost/config/user.hpp \
@@ -759,4 +759,4 @@ CMakeFiles/sync_server.dir/main.cpp.o: \
  /usr/include/boost/asio/writable_pipe.hpp \
  /usr/include/boost/asio/write_at.hpp \
  /usr/include/boost/asio/impl/write_at.hpp \
- /home/samsapi0l/repos/sync_server/Server.hpp
+ /home/samsapi0l/repos/sync_server/server/Server.hpp
