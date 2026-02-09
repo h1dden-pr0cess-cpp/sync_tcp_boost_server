@@ -8,9 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/samsapi0l/repos/sync_server/Server.cpp" "CMakeFiles/sync_server.dir/Server.cpp.o" "gcc" "CMakeFiles/sync_server.dir/Server.cpp.o.d"
-  "/home/samsapi0l/repos/sync_server/Session.cpp" "CMakeFiles/sync_server.dir/Session.cpp.o" "gcc" "CMakeFiles/sync_server.dir/Session.cpp.o.d"
-  "/home/samsapi0l/repos/sync_server/main.cpp" "CMakeFiles/sync_server.dir/main.cpp.o" "gcc" "CMakeFiles/sync_server.dir/main.cpp.o.d"
+  "/home/samsapi0l/repos/sync_server/server/Server.cpp" "CMakeFiles/sync_server.dir/Server.cpp.o" "gcc" "CMakeFiles/sync_server.dir/Server.cpp.o.d"
+  "/home/samsapi0l/repos/sync_server/server/Session.cpp" "CMakeFiles/sync_server.dir/Session.cpp.o" "gcc" "CMakeFiles/sync_server.dir/Session.cpp.o.d"
+  "/home/samsapi0l/repos/sync_server/server/main.cpp" "CMakeFiles/sync_server.dir/main.cpp.o" "gcc" "CMakeFiles/sync_server.dir/main.cpp.o.d"
   "" "sync_server" "gcc" "CMakeFiles/sync_server.dir/link.d"
   )
 

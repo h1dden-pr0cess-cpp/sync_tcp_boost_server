@@ -1,28 +1,33 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
-#include "Protocol"
+#include "Protocol.hpp"
 #include <boost/asio.hpp>
 #include <memory>
-#include <array>
 #include <vector>
+#include <cstdint>
 
-class Session : public std::enable_shared_from_this<Session>
-{
+class Session : public std::enable_shared_from_this<Session> {
 public:
+    Session(int id, boost::asio::ip::tcp::socket socket);
+
     void start();
+    int id() const; 
 
 private:
-    void read_size();
+    void read_header();
     void read_body();
-	void handle_packet();
+    void handle_packet();
 
-    uint32_t current_size_;
-    std::vector<uint8_t> body_;
+private:
+    int id_;
+
+    uint8_t packet_type_;
+    uint32_t packet_size_;  
+    std::vector<uint8_t> body_; 
 
     boost::asio::ip::tcp::socket socket_;
 };
-
 
 #endif // SESSION_HPP
 
