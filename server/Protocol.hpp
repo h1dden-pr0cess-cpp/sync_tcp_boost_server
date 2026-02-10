@@ -1,6 +1,7 @@
 #ifndef PROTOCOL_HPP
 #define PROTOCOL_HPP
 
+#include <string>
 #include <cstdint>
 
 enum class PacketType : uint8_t
