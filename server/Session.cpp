@@ -1,8 +1,10 @@
 #include "Session.hpp"
+#include "Server.hpp"
 
-Session::Session(int id, boost::asio::ip::tcp::socket socket)
+Session::Session(int id, boost::asio::ip::tcp::socket socket, Server& server)
     : id_(id),
-      socket_(std::move(socket))
+      socket_(std::move(socket)),
+	  server_(server)
 {}
 
 int Session::id() const {
@@ -63,6 +65,13 @@ void Session::read_header() {
 
 
 void Session::read_body() {
+	if(packet_size_ > MAX_PACKET_SIZE)
+	{
+		std::cout << "Packet too big!\n";
+		socket_.close();
+		return;
+	}
+
     auto self = shared_from_this();
 
     if (packet_size_ == 0) {
@@ -70,6 +79,8 @@ void Session::read_body() {
         read_header();
         return;
     }
+
+	body_.resize(packet_size_);
 
     boost::asio::async_read(
         socket_,
@@ -79,7 +90,6 @@ void Session::read_body() {
 			self->socket_.close();
 			return;
 		}
-
 
             self->handle_packet();
             self->read_header();
@@ -101,85 +111,97 @@ void Session::handle_packet() {
         return;
     }
 
-    switch(type) {
-        case PacketType::Ping:
-            Packet response;
-			response.type = PacketType::Ping; // echo
-			send_packet(response);
+    switch(static_cast<PacketType>(packet_type_)) {
+		case PacketType::RegisterUser: {
+			handle_register(body_);
 			break;
-
-        case PacketType::RegisterUser:
-            handle_register(body_);
-            break;
-
-        case PacketType::LoginWithPassword:
-            handle_login_password(body_);
-            break;
-
-        case PacketType::LoginWithToken:
-            handle_login_token(body_);
-            break;
-
-        case PacketType::Logout:
-            authorized_ = false;
-            username_.clear();
-            std::cout << "Client " << id_ << " logged out\n";
-            break;
-
-        case PacketType::UploadChunk:
-            std::cout << "Upload chunk from user " << username_ << "\n";
-            break;
-
-        case PacketType::Download:
-            std::cout << "Download request from user " << username_ << "\n";
-            break;
-
-        case PacketType::ListFiles:
-            std::cout << "List files request from user " << username_ << "\n";
-            break;
-
-        default:
-            std::cout << "Unknown packet from client " << id_ << "\n";
-            break;
-    }
+		}
+		case PacketType::LoginWithPassword: {
+			handle_login_password(body_);
+			break;
+		}
+		case PacketType::LoginWithToken: {
+			handle_login_token(body_);
+			break;
+		}
+		case PacketType::Logout: {
+			authorized_ = false;
+			username_.clear();
+			std::cout << "Client " << id_ << " logged out\n";
+			break;
+		}
+		case PacketType::UploadChunk: {
+			std::cout << "Upload chunk from user " << username_ << "\n";
+			break;
+		}
+		case PacketType::Download: {
+			std::cout << "Download request from user " << username_ << "\n";
+			break;
+		}
+		case PacketType::ListFiles: {
+			std::cout << "List files request from user " << username_ << "\n";
+			break;
+		}
+		default: {
+			std::cout << "Unknown packet from client " << id_ << "\n";
+			break;
+		}
+	}
 }
 
-void Session::handle_register(const std::vector<uint8_t>& body)
-{
+void Session::handle_register(const std::vector<uint8_t>& body) {
     try {
         size_t offset = 0;
-
         std::string username = read_string(body, offset);
         std::string password_hash = read_string(body, offset);
 
-        std::cout << "Register: user=" << username << "\n";
+        if (server_.user_exists(username)) {
+            std::cout << "User already exists: " << username << "\n";
+            // можно отправить пакет-ответ с ошибкой
+            return;
+        }
 
-        // TODO: сохранить пользователя
-    }
-    catch (const std::exception& e) {
+        User user{username, password_hash};
+        server_.add_user(user);
+
+        std::cout << "Registered user: " << username << "\n";
+
+        // ✅ можно отправить AuthResponse успешный
+        Packet response;
+        response.type = PacketType::LoginWithPassword; // или AuthResponse, когда добавим
+        send_packet(response);
+
+    } catch (const std::exception& e) {
         std::cout << "Bad Register packet: " << e.what() << "\n";
     }
 }
-
 
 void Session::handle_login_password(const std::vector<uint8_t>& body)
 {
     try {
         size_t offset = 0;
-
         std::string username = read_string(body, offset);
         std::string password_hash = read_string(body, offset);
 
-        std::cout << "LoginWithPassword: user=" << username << "\n";
+        if (!server_.check_user(username, password_hash)) {
+            std::cout << "Login failed: " << username << "\n";
+            // можно отправить пакет-ответ с ошибкой
+            return;
+        }
 
-        // 🔐 пока просто принимаем
         authorized_ = true;
         username_ = username;
-    }
-    catch (const std::exception& e) {
-        std::cout << "Bad LoginWithPassword packet: " << e.what() << "\n";
-    }
-}
+
+        std::cout << "Login successful: " << username << "\n";
+
+        // ✅ отправляем успешный AuthResponse
+        Packet response;
+        response.type = PacketType::LoginWithPassword; // или AuthResponse
+        send_packet(response);
+
+    } catch (const std::exception& e) {
+        std::cout << "Bad Login packet: " << e.what() << "\n";
+    }}
 
 
 void Session::handle_login_token(const std::vector<uint8_t>& body)
