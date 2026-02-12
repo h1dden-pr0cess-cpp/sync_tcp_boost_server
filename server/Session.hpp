@@ -25,6 +25,7 @@ private:
 	void handle_login_password(const std::vector<uint8_t>& data);
 	void handle_login_token(const std::vector<uint8_t>& data);
 	void handle_logout();
+	void send_packet(const Packet& packet);
 
 private:
 	bool authorized_ = false;
