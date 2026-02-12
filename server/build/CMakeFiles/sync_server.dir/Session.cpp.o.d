@@ -115,7 +115,12 @@ CMakeFiles/sync_server.dir/Session.cpp.o: \
  /usr/include/c++/15.2.1/tuple /usr/include/c++/15.2.1/cstdint \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h \
  /usr/include/stdint.h /usr/include/bits/stdint-uintn.h \
- /usr/include/bits/stdint-least.h /usr/include/boost/asio.hpp \
+ /usr/include/bits/stdint-least.h /usr/include/c++/15.2.1/vector \
+ /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
+ /usr/include/c++/15.2.1/bits/stl_vector.h \
+ /usr/include/c++/15.2.1/bits/stl_bvector.h \
+ /usr/include/c++/15.2.1/bits/vector.tcc \
+ /usr/include/c++/15.2.1/bits/formatfwd.h /usr/include/boost/asio.hpp \
  /usr/include/boost/asio/any_completion_executor.hpp \
  /usr/include/boost/asio/detail/config.hpp /usr/include/boost/config.hpp \
  /usr/include/boost/config/user.hpp \
@@ -185,7 +190,6 @@ CMakeFiles/sync_server.dir/Session.cpp.o: \
  /usr/include/boost/asio/detail/handler_alloc_helpers.hpp \
  /usr/include/boost/asio/detail/memory.hpp /usr/include/c++/15.2.1/memory \
  /usr/include/c++/15.2.1/bits/stl_tempbuf.h \
- /usr/include/c++/15.2.1/bits/stl_uninitialized.h \
  /usr/include/c++/15.2.1/bits/stl_raw_storage_iter.h \
  /usr/include/c++/15.2.1/bits/align.h \
  /usr/include/c++/15.2.1/bits/unique_ptr.h \
@@ -255,11 +259,7 @@ CMakeFiles/sync_server.dir/Session.cpp.o: \
  /usr/include/c++/15.2.1/bits/hashtable_policy.h \
  /usr/include/c++/15.2.1/bits/enable_special_members.h \
  /usr/include/c++/15.2.1/bits/node_handle.h \
- /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/vector \
- /usr/include/c++/15.2.1/bits/stl_vector.h \
- /usr/include/c++/15.2.1/bits/stl_bvector.h \
- /usr/include/c++/15.2.1/bits/vector.tcc \
- /usr/include/c++/15.2.1/bits/formatfwd.h /usr/include/c++/15.2.1/array \
+ /usr/include/c++/15.2.1/bits/erase_if.h /usr/include/c++/15.2.1/array \
  /usr/include/c++/15.2.1/bits/move_only_function.h \
  /usr/include/c++/15.2.1/bits/mofunc_impl.h \
  /usr/include/boost/asio/detail/non_const_lvalue.hpp \
@@ -765,4 +765,5 @@ CMakeFiles/sync_server.dir/Session.cpp.o: \
  /usr/include/boost/asio/writable_pipe.hpp \
  /usr/include/boost/asio/write_at.hpp \
  /usr/include/boost/asio/impl/write_at.hpp \
- /usr/include/c++/15.2.1/iostream
+ /usr/include/c++/15.2.1/iostream \
+ /home/samsapi0l/repos/sync_server/server/Server.hpp

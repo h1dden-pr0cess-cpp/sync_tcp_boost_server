@@ -10,9 +10,12 @@
 #include <cstring>
 #include <stdexcept>
 
+class Server;
+
 class Session : public std::enable_shared_from_this<Session> {
 public:
-    Session(int id, boost::asio::ip::tcp::socket socket);
+    Session(int id, boost::asio::ip::tcp::socket socket, Server& server);
+		
 
     void start();
     int id() const; 
@@ -28,6 +31,11 @@ private:
 	void send_packet(const Packet& packet);
 
 private:
+
+	Server& server_;
+
+	static constexpr uint32_t MAX_PACKET_SIZE = 10 * 1024 * 1024;
+
 	bool authorized_ = false;
     std::string username_;
 
