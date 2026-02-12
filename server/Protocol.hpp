@@ -14,7 +14,15 @@ enum class PacketType : uint8_t
     RegisterUser     = 10, 
     LoginWithPassword= 11, 
     LoginWithToken   = 12, 
-    Logout           = 13  
+    Logout           = 13,
+
+	AuthResponse     = 20
+};
+
+struct Packet
+{
+    PacketType type;
+    std::vector<uint8_t> body;
 };
 
 
