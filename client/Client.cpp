@@ -8,10 +8,25 @@
 #include <cstdint>
 #include <cstring>
 
-enum class PacketType : uint8_t {
+enum class PacketType : uint8_t
+{
     Ping             = 1,
+    UploadChunk      = 2,
+    Download         = 3,
+    ListFiles        = 4,
+
     RegisterUser     = 10, 
-    LoginWithPassword= 11
+    LoginWithPassword= 11, 
+    LoginWithToken   = 12, 
+    Logout           = 13,
+
+	AuthResponse     = 20
+};
+
+struct Packet
+{
+    PacketType type;
+    std::vector<uint8_t> body;
 };
 
 // Функция для сериализации строки в формат [uint16_t len][data]
