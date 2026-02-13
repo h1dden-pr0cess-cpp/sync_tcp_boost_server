@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/sync_server.dir/link.d CMakeFiles/sync_server.dir/main.cpp.o CMakeFiles/sync_server.dir/Server.cpp.o CMakeFiles/sync_server.dir/Session.cpp.o -o sync_server

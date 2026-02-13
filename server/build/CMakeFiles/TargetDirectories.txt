@@ -1,3 +1,0 @@
-/home/samsapi0l/repos/sync_server/server/build/CMakeFiles/sync_server.dir
-/home/samsapi0l/repos/sync_server/server/build/CMakeFiles/edit_cache.dir
-/home/samsapi0l/repos/sync_server/server/build/CMakeFiles/rebuild_cache.dir
