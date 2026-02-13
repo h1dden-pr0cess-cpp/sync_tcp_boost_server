@@ -11,10 +11,12 @@
 enum class PacketType : uint8_t
 {
     Ping             = 1,
-    UploadChunk      = 2,
-    Download         = 3,
-    ListFiles        = 4,
-
+	UploadStart      = 2,
+    UploadChunk      = 3,
+	UoloadEnd        = 4,
+    Download         = 5,
+    ListFiles        = 6,
+	
     RegisterUser     = 10, 
     LoginWithPassword= 11, 
     LoginWithToken   = 12, 
