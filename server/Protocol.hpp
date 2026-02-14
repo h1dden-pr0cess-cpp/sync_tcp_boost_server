@@ -10,7 +10,7 @@ enum class PacketType : uint8_t
     Ping             = 1,
 	UploadStart      = 2,
     UploadChunk      = 3,
-	UoloadEnd        = 4,
+	UploadEnd        = 4,
     Download         = 5,
     ListFiles        = 6,
 	
@@ -27,6 +27,12 @@ struct Packet
     PacketType type;
     std::vector<uint8_t> body;
 };
+
+struct UploadState{
+	std::string filename;
+	std::vector<uint8_t> data;
+	bool active = false;
+}
 
 
 struct AuthPasswordPacket

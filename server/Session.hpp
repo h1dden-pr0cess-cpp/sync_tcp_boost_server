@@ -27,12 +27,18 @@ private:
 	void handle_register(const std::vector<uint8_t>& data);
 	void handle_login_password(const std::vector<uint8_t>& data);
 	void handle_login_token(const std::vector<uint8_t>& data);
+	void handle_upload_start(const std::vector<uint8_t>& data);
+	void handle_upload_chunk(const std::vector<uint8_t>& data);
+	void handle_upload_end(const std::vector<uint8_t>& data);
 	void handle_logout();
 	void send_packet(const Packet& packet);
+	void save_file();
 
 private:
 
 	Server& server_;
+
+	UploadState current_upload_;
 
 	static constexpr uint32_t MAX_PACKET_SIZE = 10 * 1024 * 1024;
 
