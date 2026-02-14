@@ -130,8 +130,16 @@ void Session::handle_packet() {
 			std::cout << "Client " << id_ << " logged out\n";
 			break;
 		}
+		case PacketType::UploadStart: {
+			handle_upload_start(body_);
+			break;
+		}
 		case PacketType::UploadChunk: {
-			std::cout << "Upload chunk from user " << username_ << "\n";
+			handle_upload_chunk(body_);
+			break;
+		}
+		case PacketType::UploadEnd: {
+			handle_upload_end(body_);
 			break;
 		}
 		case PacketType::Download: {
@@ -220,6 +228,45 @@ void Session::handle_login_token(const std::vector<uint8_t>& body)
     catch (const std::exception& e) {
         std::cout << "Bad LoginWithToken packet: " << e.what() << "\n";
     }
+}
+
+void Session::handle_upload_start(const std::vector<uint8_t>& body)
+{
+	size_t offset = 0;
+	current_upload_.filename = read_string(body, offset);
+	current_upload_.data.clear();
+	current_upload_.active = true;
+
+	std::cout << "Upload started: " << current_upload_.filename << "\n";
+}
+
+void Session::handle_upload_chunk(const std::vector<uint8_t>& body)
+{
+	if(!current_upload_.active){
+		std::cout << "No active upload\n";
+		return;
+	}
+	current_upload_.data.insert(current_upload_.data.end(), body.begin(), body.end());
+	std::cout << "Received chunk, size = " << body.size() 
+		<< ", total = " << current_upload_.data.size() << "\n";
+}
+
+void Session::handle_upload_end(const std::vector<uint8_t>& body)
+{
+	if(!current_upload_.active) return;
+
+	std::cout << "Upload finished: " << current_upload_.filename
+		<< ", size = " << current_upload_.data.size() << "\n";
+
+	current_upload.active = false;
+
+	save_file();
+}
+
+void Session::save_file()
+{
+	std::ofstream out(current_upload_.filename, std::ios::binary);
+    out.write(reinterpret_cast<const char*>(current_upload_.data.data()), current_upload_.data.size());
 }
 
 void Session::send_packet(const Packet& packet)
