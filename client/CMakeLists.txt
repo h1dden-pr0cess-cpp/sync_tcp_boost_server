@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Boost REQUIRED)
 
 add_executable(client
-	Client.cpp
+	ClientChunk.cpp
 )
 
 target_include_directories(client
