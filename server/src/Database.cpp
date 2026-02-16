@@ -83,3 +83,20 @@ bool Database::check_user(const std::string& username,
     sqlite3_finalize(stmt);
     return result;
 }
+
+bool Database::user_exists(const std::string& username)
+{
+    const char* sql =
+        "SELECT 1 FROM users WHERE username = ? LIMIT 1;";
+
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+
+    bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
+
+    sqlite3_finalize(stmt);
+
+    return exists;
+}

@@ -24,6 +24,7 @@ public:
 private:
     void read_header();
     void read_body();
+
     void handle_packet();
 	void handle_register(const std::vector<uint8_t>& data);
 	void handle_login_password(const std::vector<uint8_t>& data);
@@ -32,11 +33,13 @@ private:
 	void handle_upload_chunk(const std::vector<uint8_t>& data);
 	void handle_upload_end(const std::vector<uint8_t>& data);
 	void handle_logout();
+
 	void send_packet(const Packet& packet);
 	void save_file();
 
 private:
-
+	int id_;
+	boost::asio::ip::tcp::socket socket_;
 	Server& server_;
 
 	UploadState current_upload_;
@@ -46,13 +49,9 @@ private:
 	bool authorized_ = false;
     std::string username_;
 
-    int id_;
-
     uint8_t packet_type_;
     uint32_t packet_size_;  
     std::vector<uint8_t> body_; 
-
-    boost::asio::ip::tcp::socket socket_;
 };
 
 #endif // SESSION_HPP

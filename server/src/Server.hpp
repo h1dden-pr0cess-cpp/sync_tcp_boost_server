@@ -3,8 +3,6 @@
 
 #include "Database.hpp"
 #include <boost/asio.hpp>
-#include <unordered_map>
-#include <mutex>
 #include <string>
 
 struct User {
@@ -24,11 +22,10 @@ public:
 
 private:
 	Database& db_;
+	boost::asio::ip::tcp::acceptor acceptor_;
+	int next_id_;
 
-    void do_accept();
-
-    boost::asio::ip::tcp::acceptor acceptor_;
-    int next_id_;
+    void do_accept();  
 };
 
 #endif // SERVER_HPP

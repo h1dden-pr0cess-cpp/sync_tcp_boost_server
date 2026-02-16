@@ -174,7 +174,6 @@ void Session::handle_register(const std::vector<uint8_t>& body) {
 
         std::cout << "Registered user: " << username << "\n";
 
-        // ✅ можно отправить AuthResponse успешный
         Packet response;
         response.type = PacketType::AuthResponse; 
 		send_packet(response);
@@ -202,10 +201,9 @@ void Session::handle_login_password(const std::vector<uint8_t>& body)
 
         std::cout << "Login successful: " << username << "\n";
 
-        // ✅ отправляем успешный AuthResponse
         Packet response;
-        response.type = PacketType::AuthResponse; // или AuthResponse
-        send_packet(response);
+        response.type = PacketType::AuthResponse; 
+		send_packet(response);
 
     } catch (const std::exception& e) {
         std::cout << "Bad Login packet: " << e.what() << "\n";
@@ -229,6 +227,8 @@ void Session::handle_login_token(const std::vector<uint8_t>& body)
         std::cout << "Bad LoginWithToken packet: " << e.what() << "\n";
     }
 }
+
+
 
 void Session::handle_upload_start(const std::vector<uint8_t>& body)
 {
@@ -267,12 +267,13 @@ void Session::handle_upload_end(const std::vector<uint8_t>& body)
 	current_upload_.active = false;
 	current_upload_.data.clear();
 }
-
 void Session::save_file()
 {
 	std::ofstream out(current_upload_.filename, std::ios::binary);
     out.write(reinterpret_cast<const char*>(current_upload_.data.data()), current_upload_.data.size());
 }
+
+
 
 void Session::send_packet(const Packet& packet)
 {

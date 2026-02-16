@@ -1,5 +1,5 @@
-#ifndef SESSION_HPP
-#define 
+#ifndef DATABASE_HPP
+#define DATABASE_HPP
 
 #include <string>
 #include <sqlite3.h>
@@ -23,4 +23,4 @@ private:
     void create_tables();
 };
 
-#endif // SESSION_HPP
+#endif //DATABASE_HPP
