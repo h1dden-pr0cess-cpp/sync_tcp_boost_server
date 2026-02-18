@@ -16,5 +16,5 @@ cmake-build-*/
 # logs
 *.log
 
-certs/server.key
-certs/server.crt
+server/certs/server.key
+server/certs/server.crt
