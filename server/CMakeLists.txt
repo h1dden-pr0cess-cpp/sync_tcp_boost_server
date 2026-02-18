@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ===== Build type (если не задан) =====
+# ===== Build type =====
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -23,6 +23,10 @@ add_library(sqlite3 STATIC
 target_include_directories(sqlite3 PUBLIC
     third_party/sqlite
 )
+
+# ===== OpenSSL =====
+
+find_package(OpenSSL REQUIRED)
 
 # ===== Server executable =====
 add_executable(sync_server
@@ -39,6 +43,8 @@ target_include_directories(sync_server PRIVATE
 target_link_libraries(sync_server PRIVATE
     sqlite3
 )
+
+target_link_libraries(sync_server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # ===== Warnings =====
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")

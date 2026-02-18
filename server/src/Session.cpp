@@ -3,7 +3,7 @@
 
 Session::Session(int id, boost::asio::ip::tcp::socket socket, Server& server)
     : id_(id),
-      socket_(std::move(socket)),
+      socket_(std::move(socket), server.get_ssl_context()),
 	  server_(server)
 {}
 
@@ -12,7 +12,22 @@ int Session::id() const {
 }
 
 void Session::start() {
-    read_header();
+
+	auto self = shared_from_this();
+
+    socket_.async_handshake(
+        boost::asio::ssl::stream_base::server,
+        [self](const boost::system::error_code& ec)
+        {
+            if (!ec)
+            {
+                self->read_header();
+            }
+            else
+            {
+                std::cout << "SSL handshake failed\n";
+            }
+        });
 }
 
 
@@ -40,18 +55,22 @@ void Session::read_header() {
     boost::asio::async_read(
         socket_,
         boost::asio::buffer(&packet_type_, sizeof(packet_type_)),
-        [self](boost::system::error_code ec, std::size_t) {
-            if (ec) {
-				self->socket_.close();
+        [self](const boost::system::error_code error, std::size_t) {
+            if (error) {
+				boost::system::error_code ec;
+				self->socket_.shutdown(ec);
+				self->socket_.lowest_layer().close(ec);
 				return;
 			}
 
             boost::asio::async_read(
                 self->socket_,
                 boost::asio::buffer(&self->packet_size_, sizeof(self->packet_size_)),
-                [self](boost::system::error_code ec, std::size_t) {
-                    if (ec) {
-						self->socket_.close();
+                [self](boost::system::error_code error, std::size_t) {
+                    if (error) {
+						boost::system::error_code ec;
+						self->socket_.shutdown(ec);
+						self->socket_.lowest_layer().close(ec);				
 						return;
 					}
 
@@ -65,14 +84,17 @@ void Session::read_header() {
 
 
 void Session::read_body() {
+	auto self = shared_from_this();
+
 	if(packet_size_ > MAX_PACKET_SIZE)
 	{
 		std::cout << "Packet too big!\n";
-		socket_.close();
+		boost::system::error_code ec;
+		self->socket_.shutdown(ec);
+		self->socket_.lowest_layer().close(ec);
 		return;
 	}
 
-    auto self = shared_from_this();
 
     if (packet_size_ == 0) {
         handle_packet();
@@ -85,11 +107,13 @@ void Session::read_body() {
     boost::asio::async_read(
         socket_,
 		boost::asio::buffer(body_),
-		[self](boost::system::error_code ec, std::size_t) {
-            if (ec) {
-			self->socket_.close();
-			return;
-		}
+		[self](boost::system::error_code error, std::size_t) {
+            if (error) {
+				boost::system::error_code ec;
+				self->socket_.shutdown(ec);
+				self->socket_.lowest_layer().close(ec);
+				return;
+			}
 
             self->handle_packet();
             self->read_header();
@@ -196,38 +220,51 @@ void Session::handle_login_password(const std::vector<uint8_t>& body)
             return;
         }
 
-        authorized_ = true;
-        username_ = username;
+		authorized_ = true;
+		username_ = username;
 
-        std::cout << "Login successful: " << username << "\n";
+        std::string token = server_.generate_token(username);
+		std::cout << "Login token for user " << username << ": " << token << "\n";
 
-        Packet response;
-        response.type = PacketType::AuthResponse; 
+		// Можно отправить токен клиенту в ответе
+		Packet response;
+		response.type = PacketType::AuthResponse; 
+		response.body = std::vector<uint8_t>(token.begin(), token.end());
 		send_packet(response);
 
     } catch (const std::exception& e) {
         std::cout << "Bad Login packet: " << e.what() << "\n";
-    }}
+    }
+}
 
 
 void Session::handle_login_token(const std::vector<uint8_t>& body)
 {
     try {
         size_t offset = 0;
-
         std::string token = read_string(body, offset);
 
-        std::cout << "LoginWithToken: token=" << token << "\n";
+        std::string user;
+        if (!server_.validate_token(token, user)) {
+            std::cout << "Invalid token from client " << id_ << "\n";
+            return; // токен неверный — отказ
+        }
 
-        // TODO: проверить токен
+        // Токен валиден
         authorized_ = true;
-        username_ = "user_from_token";
+        username_ = user;
+
+        std::cout << "LoginWithToken successful: user=" << username_ << "\n";
+
+		Packet response;
+        response.type = PacketType::AuthResponse; 
+		send_packet(response);
+
     }
     catch (const std::exception& e) {
         std::cout << "Bad LoginWithToken packet: " << e.what() << "\n";
     }
 }
-
 
 
 void Session::handle_upload_start(const std::vector<uint8_t>& body)
@@ -292,10 +329,14 @@ void Session::send_packet(const Packet& packet)
     boost::asio::async_write(
         socket_,
         boost::asio::buffer(*buffer),
-        [self, buffer](boost::system::error_code ec, std::size_t)
+        [self, buffer](boost::system::error_code error, std::size_t)
         {
-            if (ec)
-                self->socket_.close();
+            if (error)
+			{
+				boost::system::error_code ec;
+				self->socket_.shutdown(ec);
+				self->socket_.lowest_layer().close(ec);
+			}
         }
     );
 }

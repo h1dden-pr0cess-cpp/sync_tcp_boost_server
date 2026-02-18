@@ -10,6 +10,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <fstream>
+#include <boost/asio/ssl.hpp>
 
 class Server;
 
@@ -39,7 +40,7 @@ private:
 
 private:
 	int id_;
-	boost::asio::ip::tcp::socket socket_;
+	boost::asio::ssl::stream<boost::asio::ip::tcp::socket> socket_;
 	Server& server_;
 
 	UploadState current_upload_;

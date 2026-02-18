@@ -1,85 +1,150 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <vector>
-#include <boost/asio.hpp>
-#include <iostream>
-#include <vector>
 #include <string>
 #include <cstdint>
 #include <cstring>
 
-enum class PacketType : uint8_t
+using boost::asio::ip::tcp;
+
+/* =========================
+   Вспомогательные функции
+   ========================= */
+
+void append_string(std::vector<uint8_t>& body, const std::string& s)
 {
-    Ping             = 1,
-	UploadStart      = 2,
-    UploadChunk      = 3,
-	UoloadEnd        = 4,
-    Download         = 5,
-    ListFiles        = 6,
-	
-    RegisterUser     = 10, 
-    LoginWithPassword= 11, 
-    LoginWithToken   = 12, 
-    Logout           = 13,
-
-	AuthResponse     = 20
-};
-
-struct Packet
-{
-    PacketType type;
-    std::vector<uint8_t> body;
-};
-
-// Функция для сериализации строки в формат [uint16_t len][data]
-std::vector<uint8_t> write_string(const std::string& s) {
-    std::vector<uint8_t> buf;
     uint16_t len = static_cast<uint16_t>(s.size());
-    buf.resize(sizeof(len) + s.size());
-    std::memcpy(buf.data(), &len, sizeof(len));
-    std::memcpy(buf.data() + sizeof(len), s.data(), s.size());
-    return buf;
+    body.push_back(len & 0xFF);
+    body.push_back((len >> 8) & 0xFF);
+    body.insert(body.end(), s.begin(), s.end());
 }
 
-// Отправка пакета: [PacketType][uint32_t size][body]
-void send_packet(boost::asio::ip::tcp::socket& sock, PacketType type, const std::vector<uint8_t>& body) {
+std::string read_string(const std::vector<uint8_t>& body, size_t& offset)
+{
+    uint16_t len = body[offset] | (body[offset + 1] << 8);
+    offset += 2;
+
+    std::string s(body.begin() + offset, body.begin() + offset + len);
+    offset += len;
+
+    return s;
+}
+
+void send_packet(tcp::socket& socket,
+                 uint8_t type,
+                 const std::vector<uint8_t>& body)
+{
     uint32_t size = static_cast<uint32_t>(body.size());
-    std::vector<uint8_t> packet(1 + 4 + body.size()); // 1 байт type + 4 байта size + body
 
-    packet[0] = static_cast<uint8_t>(type);
-    std::memcpy(packet.data() + 1, &size, sizeof(size));
-    if (!body.empty()) {
-        std::memcpy(packet.data() + 5, body.data(), body.size());
-    }
+    std::vector<uint8_t> buffer;
+    buffer.resize(1 + 4 + size);
 
-    boost::asio::write(sock, boost::asio::buffer(packet));
+    buffer[0] = type;
+    std::memcpy(buffer.data() + 1, &size, 4);
+    if (size > 0)
+        std::memcpy(buffer.data() + 5, body.data(), size);
+
+    boost::asio::write(socket, boost::asio::buffer(buffer));
 }
 
-int main() {
-    try {
+bool read_packet(tcp::socket& socket,
+                 uint8_t& type,
+                 std::vector<uint8_t>& body)
+{
+    boost::system::error_code ec;
+
+    boost::asio::read(socket, boost::asio::buffer(&type, 1), ec);
+    if (ec) return false;
+
+    uint32_t size = 0;
+    boost::asio::read(socket, boost::asio::buffer(&size, 4), ec);
+    if (ec) return false;
+
+    body.resize(size);
+    if (size > 0)
+        boost::asio::read(socket, boost::asio::buffer(body), ec);
+
+    return !ec;
+}
+
+/* =========================
+   main
+   ========================= */
+
+int main()
+{
+    const std::string host = "127.0.0.1";
+    const std::string port = "12345";
+
+    const uint8_t LOGIN_WITH_PASSWORD = 11; // поставь свои значения
+    const uint8_t LOGIN_WITH_TOKEN    = 12;
+    const uint8_t AUTH_RESPONSE       = 20;
+
+    std::string token;
+
+    /* ======== 1. Логин по паролю ======== */
+
+    {
         boost::asio::io_context io;
+        tcp::resolver resolver(io);
+        tcp::socket socket(io);
 
-        boost::asio::ip::tcp::socket socket(io);
-        // ✅ Используем make_address
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345);
-        socket.connect(endpoint);
+        auto endpoints = resolver.resolve(host, port);
+        boost::asio::connect(socket, endpoints);
 
-        // 🔹 Отправляем Ping
-        send_packet(socket, PacketType::Ping, {});
-
-        // 🔹 Логин с паролем
         std::vector<uint8_t> body;
-        auto username = write_string("test_user");
-        auto password = write_string("test_password_hash");
+        append_string(body, "testuser");
+        append_string(body, "123");
 
-        body.insert(body.end(), username.begin(), username.end());
-        body.insert(body.end(), password.begin(), password.end());
+        send_packet(socket, LOGIN_WITH_PASSWORD, body);
 
-        send_packet(socket, PacketType::LoginWithPassword, body);
+        uint8_t type;
+        std::vector<uint8_t> resp;
 
-        std::cout << "Packets sent!\n";
-    } catch (std::exception& e) {
-        std::cout << "Error: " << e.what() << "\n";
+        if (!read_packet(socket, type, resp)) {
+            std::cout << "Login response read failed\n";
+            return 1;
+        }
+
+        if (type != AUTH_RESPONSE) {
+            std::cout << "Unexpected packet type\n";
+            return 1;
+        }
+
+        size_t offset = 0;
+        token = read_string(resp, offset);
+
+        std::cout << "Received token: " << token << "\n";
     }
-}
 
+    /* ======== 2. Новый коннект + логин по токену ======== */
+
+    {
+        boost::asio::io_context io;
+        tcp::resolver resolver(io);
+        tcp::socket socket(io);
+
+        auto endpoints = resolver.resolve(host, port);
+        boost::asio::connect(socket, endpoints);
+
+        std::vector<uint8_t> body;
+        append_string(body, token);
+
+        send_packet(socket, LOGIN_WITH_TOKEN, body);
+
+        uint8_t type;
+        std::vector<uint8_t> resp;
+
+        if (!read_packet(socket, type, resp)) {
+            std::cout << "Token login failed\n";
+            return 1;
+        }
+
+        if (type == AUTH_RESPONSE)
+            std::cout << "Token login SUCCESS\n";
+        else
+            std::cout << "Token login FAILED\n";
+    }
+
+    return 0;
+}
