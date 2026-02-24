@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 
+
 enum class PacketType : uint8_t
 {
     Ping             = 1,
@@ -13,13 +14,20 @@ enum class PacketType : uint8_t
 	UploadEnd        = 4,
     Download         = 5,
     ListFiles        = 6,
-	
-    RegisterUser     = 10, 
-    LoginWithPassword= 11, 
-    LoginWithToken   = 12, 
-    Logout           = 13,
 
-	AuthResponse     = 20
+	AddGame			 = 10,
+	DeleteGame	     = 11,
+	ListGames	     = 12,
+	AddSave          = 13,
+	DeleteSave       = 14,
+	ListSaves        = 15,
+	
+    RegisterUser     = 20, 
+    LoginWithPassword= 21, 
+    LoginWithToken   = 22, 
+    Logout           = 23,
+
+	AuthResponse     = 30
 };
 
 struct Packet

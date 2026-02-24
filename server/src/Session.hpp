@@ -2,6 +2,7 @@
 #define SESSION_HPP
 
 #include "Protocol.hpp"
+#include "Database.hpp"
 #include <boost/asio.hpp>
 #include <memory>
 #include <vector>
@@ -26,6 +27,14 @@ private:
     void read_header();
     void read_body();
 
+	std::string 
+	read_one_string(const std::vector<uint8_t>& data); 
+	std::pair<std::string, std::string>
+	read_two_strings(const std::vector<uint8_t>& data);
+	std::tuple<std::string, std::string, std::string> 
+	read_three_strings(const std::vector<uint8_t>& data);
+    
+
     void handle_packet();
 	void handle_register(const std::vector<uint8_t>& data);
 	void handle_login_password(const std::vector<uint8_t>& data);
@@ -34,9 +43,17 @@ private:
 	void handle_upload_chunk(const std::vector<uint8_t>& data);
 	void handle_upload_end(const std::vector<uint8_t>& data);
 	void handle_logout();
+	void handle_add_game(const std::vector<uint8_t>& data));
+	void handle_delete_game(const std::vector<uint8_t>& data));
+	void handle_list_games(const std::vector<uint8_t>& data));
+	void handle_add_save(const std::vector<uint8_t>& data));
+	void handle_delete_save(const std::vector<uint8_t>& data));
+	void handle_list_saves(const std::vector<uint8_t>& data));
 
 	void send_packet(const Packet& packet);
 	void save_file();
+
+	string get_username(){return username_;}
 
 private:
 	int id_;

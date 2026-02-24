@@ -20,13 +20,9 @@ void Session::start() {
         [self](const boost::system::error_code& ec)
         {
             if (!ec)
-            {
                 self->read_header();
-            }
             else
-            {
                 std::cout << "SSL handshake failed\n";
-            }
         });
 }
 
@@ -47,6 +43,26 @@ static std::string read_string(const std::vector<uint8_t>& buf, size_t& offset)
     offset += len;
 
     return s;
+}
+
+std::string Session::read_one_string(const std::vector<uint8_t>& body) {
+    size_t offset = 0;
+    return read_string(body, offset);
+}
+
+std::pair<std::string, std::string> Session::read_two_strings(const std::vector<uint8_t>& body) {
+    size_t offset = 0;
+    std::string first = read_string(body, offset);
+    std::string second = read_string(body, offset);
+    return {first, second};
+}
+
+std::tuple<std::string, std::string, std::string> Session::read_three_strings(const std::vector<uint8_t>& body) {
+    size_t offset = 0;
+    std::string first = read_string(body, offset);
+    std::string second = read_string(body, offset);
+    std::string third = read_string(body, offset);
+    return {first, second, third};
 }
 
 void Session::read_header() {
@@ -172,6 +188,30 @@ void Session::handle_packet() {
 		}
 		case PacketType::ListFiles: {
 			std::cout << "List files request from user " << username_ << "\n";
+			break;
+		}
+
+		case PacketType::AddGame: {
+			handle_add_game(read_one_string(body_));
+			break;
+		}
+		case PacketType::DeleteGame: {
+			handle_delete_game(read_one_string(body_));
+			break;
+		}
+		case PacketType::ListGames: {
+			handle_list_games();
+			break;
+		}
+		case PacketType::AddSave: {
+			handle_add_save(read_two_strings(body_));
+			break;
+		}
+		case PacketType::DeleteSave: {
+			handle_delete_save(read_two_strings(body_));
+		}
+		case PacketType::ListSaves: {
+			handle_list_saves(read_one_string(body_));
 			break;
 		}
 		default: {
@@ -339,5 +379,30 @@ void Session::send_packet(const Packet& packet)
 			}
         }
     );
+}
+
+void handle_add_game(std::string game_name)
+{
+
+}
+void handle_delete_game(std::string game_name)
+{
+
+}
+void handle_list_games()
+{
+
+}
+void handle_add_save(std::string game_name, std::string save_name)
+{
+
+}
+void handle_delete_save(std::string game_name, std::string  save_name)
+{
+
+}
+void handle_list_saves(std::string game_name)
+{
+
 }
 

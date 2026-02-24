@@ -32,6 +32,7 @@ public:
         return ssl_context_;
     }
 
+	Database& get_database() { return db_; }
 private:
 	Database& db_;
 	boost::asio::ip::tcp::acceptor acceptor_;

@@ -18,8 +18,22 @@ public:
 
     bool user_exists(const std::string& username);
 
+	bool add_game(const std::string& username, const std::string& game_name);
+
+	bool delete_game(const std::string& username, const std::string& game_name);
+
+	std::vector<std::string>get_games(const std::string& username);
+
+	bool add_save(const std::string& username, const std::string& game_name,
+				  const std::string& save_name, const std::vector<uint8_t>& data);
+
+	bool delete_save(const std::string& username, const std::string& game_name, const::string& save_name);
+
+	std::vector<std::string> get_saves(const std::string& username, const std::string& game_name);
+
 private:
     sqlite3* db_;
+	std::mutex mutex_;
     void create_tables();
 };
 
