@@ -43,12 +43,21 @@ private:
 	void handle_upload_chunk(const std::vector<uint8_t>& data);
 	void handle_upload_end(const std::vector<uint8_t>& data);
 	void handle_logout();
-	void handle_add_game(const std::vector<uint8_t>& data));
-	void handle_delete_game(const std::vector<uint8_t>& data));
-	void handle_list_games(const std::vector<uint8_t>& data));
-	void handle_add_save(const std::vector<uint8_t>& data));
-	void handle_delete_save(const std::vector<uint8_t>& data));
-	void handle_list_saves(const std::vector<uint8_t>& data));
+
+	void handle_add_game(const std::string game_name);
+
+	void handle_delete_game(const std::string game_name);
+
+	void handle_list_games();
+
+	void handle_add_save(const std::string game_name, 
+						 const std::string save_name, 
+					 	 const std::vector::<uint8_t> save);
+
+	void handle_delete_save(const std::string game_name, 
+							const std::string save_name);
+
+	void handle_list_saves(const std::string game_name);
 
 	void send_packet(const Packet& packet);
 	void save_file();
@@ -73,4 +82,5 @@ private:
 };
 
 #endif // SESSION_HPP
+
 

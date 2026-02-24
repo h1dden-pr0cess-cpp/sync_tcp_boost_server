@@ -204,7 +204,7 @@ void Session::handle_packet() {
 			break;
 		}
 		case PacketType::AddSave: {
-			handle_add_save(read_two_strings(body_));
+			handle_add_save(read_three_strings(body_));
 			break;
 		}
 		case PacketType::DeleteSave: {
@@ -381,28 +381,46 @@ void Session::send_packet(const Packet& packet)
     );
 }
 
-void handle_add_game(std::string game_name)
+void handle_add_game(const std::string game_name)
 {
+	if(!server_.get_database().add_game(get_username(), game_name))
+	{
 
+	}
 }
-void handle_delete_game(std::string game_name)
+void handle_delete_game(const std::string game_name)
 {
+	if(!server_.get_database().delete_game(get_username(), game_name))
+	{
 
+	}
 }
 void handle_list_games()
 {
+	server_.get_database().get_games();
+	//send user data
+}
+void handle_add_save(const std::string game_name, 
+					 const std::string save_name, 
+					 const std::vector::<uint8_t> save)
+{
+    if(!server_.get_database().add_save(get_username(), game_name, save_name, save))
+	{
+	   
+	}
+}
+void handle_delete_save(const std::string game_name, 
+						const std::string  save_name)
+{
+	if(!server_.get_database().delete_save(get_username(), game_name, save_name))
+	{
+
+	}
 
 }
-void handle_add_save(std::string game_name, std::string save_name)
+void handle_list_saves(const std::string game_name)
 {
-
-}
-void handle_delete_save(std::string game_name, std::string  save_name)
-{
-
-}
-void handle_list_saves(std::string game_name)
-{
-
+	server_.get_database().get_saves(get_username(), game_name)
+	//send user data
 }
 
