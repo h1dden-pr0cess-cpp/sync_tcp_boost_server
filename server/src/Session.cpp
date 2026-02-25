@@ -141,7 +141,7 @@ void Session::read_body() {
 void Session::handle_packet() {
     PacketType type = static_cast<PacketType>(packet_type_);
 
-    // 🔒 если не авторизован — разрешаем только логин/регистрацию
+    // If not authorized, we only allow login/registration
     if (!authorized_ &&
         type != PacketType::RegisterUser &&
         type != PacketType::LoginWithPassword &&
@@ -153,15 +153,15 @@ void Session::handle_packet() {
 
     switch(static_cast<PacketType>(packet_type_)) {
 		case PacketType::RegisterUser: {
-			handle_register(body_);
+			handle_register(read_two_strings(body_));
 			break;
 		}
 		case PacketType::LoginWithPassword: {
-			handle_login_password(body_);
+			handle_login_password(read_two_strings(body_));
 			break;
 		}
 		case PacketType::LoginWithToken: {
-			handle_login_token(body_);
+			handle_login_token(read_one_string(body_));
 			break;
 		}
 		case PacketType::Logout: {
@@ -221,12 +221,8 @@ void Session::handle_packet() {
 	}
 }
 
-void Session::handle_register(const std::vector<uint8_t>& body) {
+void Session::handle_register(const std::string username, const std::string password_hash) {
     try {
-        size_t offset = 0;
-        std::string username = read_string(body, offset);
-        std::string password_hash = read_string(body, offset);
-
         if (server_.user_exists(username)) {
             std::cout << "User already exists: " << username << "\n";
             // можно отправить пакет-ответ с ошибкой
@@ -247,13 +243,9 @@ void Session::handle_register(const std::vector<uint8_t>& body) {
     }
 }
 
-void Session::handle_login_password(const std::vector<uint8_t>& body)
+void Session::handle_login_password(const std::string username, const std::string password_hash)
 {
     try {
-        size_t offset = 0;
-        std::string username = read_string(body, offset);
-        std::string password_hash = read_string(body, offset);
-
         if (!server_.check_user(username, password_hash)) {
             std::cout << "Login failed: " << username << "\n";
             // можно отправить пакет-ответ с ошибкой
@@ -265,9 +257,8 @@ void Session::handle_login_password(const std::vector<uint8_t>& body)
 
         std::string token = server_.generate_token(username);
 		std::cout << "Login token for user " << username << ": " << token << "\n";
-
-		// Можно отправить токен клиенту в ответе
-		Packet response;
+		  
+		Packet response; 
 		response.type = PacketType::AuthResponse; 
 		response.body = std::vector<uint8_t>(token.begin(), token.end());
 		send_packet(response);
@@ -278,14 +269,11 @@ void Session::handle_login_password(const std::vector<uint8_t>& body)
 }
 
 
-void Session::handle_login_token(const std::vector<uint8_t>& body)
+void Session::handle_login_token(const std::string token)
 {
     try {
-        size_t offset = 0;
-        std::string token = read_string(body, offset);
-
         std::string user;
-        if (!server_.validate_token(token, user)) {
+		if (!server_.validate_token(token, user)) {
             std::cout << "Invalid token from client " << id_ << "\n";
             return; // токен неверный — отказ
         }
@@ -398,7 +386,7 @@ void handle_delete_game(const std::string game_name)
 void handle_list_games()
 {
 	server_.get_database().get_games();
-	//send user data
+	//send data to user
 }
 void handle_add_save(const std::string game_name, 
 					 const std::string save_name, 
@@ -421,6 +409,6 @@ void handle_delete_save(const std::string game_name,
 void handle_list_saves(const std::string game_name)
 {
 	server_.get_database().get_saves(get_username(), game_name)
-	//send user data
+	//send data to user 
 }
 
