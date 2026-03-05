@@ -36,21 +36,25 @@ private:
     
 
     void handle_packet();
-	void handle_register(const std::vector<uint8_t>& data);
-	void handle_login_password(const std::vector<uint8_t>& data);
-	void handle_login_token(const std::vector<uint8_t>& data);
+	void handle_register(const std::string& username,
+						 const std::string& password_hash);
+	void handle_login_password(const std::string& username,
+							   const std::string& password_hash);
+	void handle_login_token(const std::string& token);
+
 	void handle_upload_start(const std::vector<uint8_t>& data);
 	void handle_upload_chunk(const std::vector<uint8_t>& data);
 	void handle_upload_end(const std::vector<uint8_t>& data);
+
 	void handle_logout();
 
 	void handle_add_game(const std::string game_name);
 	void handle_delete_game(const std::string game_name);
 	void handle_list_games();
 
-	void handle_add_save(const std::string game_name, 
-						 const std::string save_name, 
-					 	 const std::vector::<uint8_t> save);
+	void handle_add_save(const std::string& game_name, 
+						 const std::string& save_name, 
+					 	 const std::vector<uint8_t>& save);
 	void handle_delete_save(const std::string game_name, 
 							const std::string save_name);
 	void handle_list_saves(const std::string game_name);
@@ -58,8 +62,7 @@ private:
 	void send_packet(const Packet& packet);
 	void save_file();
 
-	string get_username(){return username_;}
-
+	const std::string& get_username() const;
 private:
 	int id_;
 	boost::asio::ssl::stream<boost::asio::ip::tcp::socket> socket_;

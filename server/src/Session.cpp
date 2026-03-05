@@ -26,6 +26,11 @@ void Session::start() {
         });
 }
 
+const std::string& Session::get_username() const
+{
+	return username_;
+}
+
 
 static std::string read_string(const std::vector<uint8_t>& buf, size_t& offset)
 {
@@ -153,11 +158,13 @@ void Session::handle_packet() {
 
     switch(static_cast<PacketType>(packet_type_)) {
 		case PacketType::RegisterUser: {
-			handle_register(read_two_strings(body_));
+			auto [username, password] = read_two_strings(body_);
+			handle_register(username, password);
 			break;
 		}
 		case PacketType::LoginWithPassword: {
-			handle_login_password(read_two_strings(body_));
+			auto [username, password] = read_two_strings(body_);
+			handle_login_password(username, password);
 			break;
 		}
 		case PacketType::LoginWithToken: {
@@ -204,11 +211,15 @@ void Session::handle_packet() {
 			break;
 		}
 		case PacketType::AddSave: {
-			handle_add_save(read_three_strings(body_));
+			auto [game_name, save_name, save_str] = read_three_strings(body_);
+			std::vector<uint8_t> save(save_str.begin(), save_str.end());
+			handle_add_save(game_name, save_name, save);
 			break;
 		}
 		case PacketType::DeleteSave: {
-			handle_delete_save(read_two_strings(body_));
+			auto [game_name, save_name] = read_two_strings(body_);
+			handle_delete_save(game_name, save_name);
+			break;
 		}
 		case PacketType::ListSaves: {
 			handle_list_saves(read_one_string(body_));
@@ -221,7 +232,7 @@ void Session::handle_packet() {
 	}
 }
 
-void Session::handle_register(const std::string username, const std::string password_hash) {
+void Session::handle_register(const std::string& username, const std::string& password_hash) {
     try {
         if (server_.user_exists(username)) {
             std::cout << "User already exists: " << username << "\n";
@@ -243,7 +254,7 @@ void Session::handle_register(const std::string username, const std::string pass
     }
 }
 
-void Session::handle_login_password(const std::string username, const std::string password_hash)
+void Session::handle_login_password(const std::string& username, const std::string& password_hash)
 {
     try {
         if (!server_.check_user(username, password_hash)) {
@@ -269,7 +280,7 @@ void Session::handle_login_password(const std::string username, const std::strin
 }
 
 
-void Session::handle_login_token(const std::string token)
+void Session::handle_login_token(const std::string& token)
 {
     try {
         std::string user;
@@ -369,36 +380,36 @@ void Session::send_packet(const Packet& packet)
     );
 }
 
-void handle_add_game(const std::string game_name)
+void Session::handle_add_game(const std::string game_name)
 {
 	if(!server_.get_database().add_game(get_username(), game_name))
 	{
 
 	}
 }
-void handle_delete_game(const std::string game_name)
+void Session::handle_delete_game(const std::string game_name)
 {
 	if(!server_.get_database().delete_game(get_username(), game_name))
 	{
 
 	}
 }
-void handle_list_games()
+void Session::handle_list_games()
 {
-	server_.get_database().get_games();
+	server_.get_database().get_games(get_username());
 	//send data to user
 }
-void handle_add_save(const std::string game_name, 
-					 const std::string save_name, 
-					 const std::vector::<uint8_t> save)
+void Session::handle_add_save(const std::string& game_name, 
+					 const std::string& save_name, 
+					 const std::vector<uint8_t>& save)
 {
     if(!server_.get_database().add_save(get_username(), game_name, save_name, save))
 	{
 	   
 	}
 }
-void handle_delete_save(const std::string game_name, 
-						const std::string  save_name)
+void Session::handle_delete_save(const std::string game_name, 
+						const std::string save_name)
 {
 	if(!server_.get_database().delete_save(get_username(), game_name, save_name))
 	{
@@ -406,9 +417,9 @@ void handle_delete_save(const std::string game_name,
 	}
 
 }
-void handle_list_saves(const std::string game_name)
+void Session::handle_list_saves(const std::string game_name)
 {
-	server_.get_database().get_saves(get_username(), game_name)
+	server_.get_database().get_saves(get_username(), game_name);
 	//send data to user 
 }
 

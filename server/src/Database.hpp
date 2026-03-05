@@ -2,6 +2,8 @@
 #define DATABASE_HPP
 
 #include <string>
+#include <vector>
+#include <mutex>
 #include <sqlite3.h>
 
 class Database
@@ -27,7 +29,7 @@ public:
 	bool add_save(const std::string& username, const std::string& game_name,
 				  const std::string& save_name, const std::vector<uint8_t>& data);
 
-	bool delete_save(const std::string& username, const std::string& game_name, const::string& save_name);
+	bool delete_save(const std::string& username, const std::string& game_name, const std::string& save_name);
 
 	std::vector<std::string> get_saves(const std::string& username, const std::string& game_name);
 
