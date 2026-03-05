@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG -Wl,--dependency-file=CMakeFiles/sync_server.dir/link.d CMakeFiles/sync_server.dir/src/main.cpp.o CMakeFiles/sync_server.dir/src/Server.cpp.o CMakeFiles/sync_server.dir/src/Session.cpp.o CMakeFiles/sync_server.dir/src/Database.cpp.o -o sync_server  libsqlite3.a /usr/lib/libssl.so /usr/lib/libcrypto.so
