@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_sync_tcp_boost_server_FILE /home/deahst/Source/sync_tcp_boost_server/server/sync_tcp_boost_server)
+set(__QT_DEPLOY_TARGET_sync_tcp_boost_server_TYPE EXECUTABLE)

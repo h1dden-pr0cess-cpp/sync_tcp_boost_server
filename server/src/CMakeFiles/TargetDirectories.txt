@@ -1,0 +1,4 @@
+/home/deahst/Source/sync_tcp_boost_server/server/src/CMakeFiles/sqlite3.dir
+/home/deahst/Source/sync_tcp_boost_server/server/src/CMakeFiles/sync_server.dir
+/home/deahst/Source/sync_tcp_boost_server/server/src/CMakeFiles/edit_cache.dir
+/home/deahst/Source/sync_tcp_boost_server/server/src/CMakeFiles/rebuild_cache.dir

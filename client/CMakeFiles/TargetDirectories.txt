@@ -1,0 +1,3 @@
+/home/deahst/Source/sync_tcp_boost_server/client/CMakeFiles/client.dir
+/home/deahst/Source/sync_tcp_boost_server/client/CMakeFiles/edit_cache.dir
+/home/deahst/Source/sync_tcp_boost_server/client/CMakeFiles/rebuild_cache.dir
