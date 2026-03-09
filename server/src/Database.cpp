@@ -298,3 +298,50 @@ std::vector<std::string> Database::get_saves(const std::string& username, const 
     return saves;
 }
 
+bool Database::get_save(const std::string& username,
+                        const std::string& game_name,
+                        const std::string& save_name,
+                        std::vector<uint8_t>& save_out)
+{
+     save_out.clear();
+
+    const char* sql = R"(
+        SELECT save_data
+        FROM saves
+        WHERE username = ? AND game_name = ? AND save_name = ?
+    )";
+
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db_) << "\n";
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, game_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, save_name.c_str(), -1, SQLITE_TRANSIENT);
+
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        const void* blob_data = sqlite3_column_blob(stmt, 0);
+        int blob_size = sqlite3_column_bytes(stmt, 0);
+
+        if (blob_data && blob_size > 0) {
+            const uint8_t* data_ptr = reinterpret_cast<const uint8_t*>(blob_data);
+            save_out.assign(data_ptr, data_ptr + blob_size);
+        }
+
+        sqlite3_finalize(stmt);
+        return true;
+    } else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    } else {
+        std::cerr << "Error reading save: " << sqlite3_errmsg(db_) << "\n";
+        sqlite3_finalize(stmt);
+        return false;
+    }
+}
+
+

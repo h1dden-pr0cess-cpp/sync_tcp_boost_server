@@ -31,6 +31,11 @@ public:
 
 	bool delete_save(const std::string& username, const std::string& game_name, const std::string& save_name);
 
+    bool get_save(const std::string& username,
+                  const std::string& game_name,
+                  const std::string& save_name,
+                  std::vector<uint8_t>& save_out);
+
 	std::vector<std::string> get_saves(const std::string& username, const std::string& game_name);
 
 private:

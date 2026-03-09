@@ -51,22 +51,31 @@ static std::string read_string(const std::vector<uint8_t>& buf, size_t& offset)
 }
 
 std::string Session::read_one_string(const std::vector<uint8_t>& body) {
+
     size_t offset = 0;
+
     return read_string(body, offset);
 }
 
 std::pair<std::string, std::string> Session::read_two_strings(const std::vector<uint8_t>& body) {
+
     size_t offset = 0;
+
     std::string first = read_string(body, offset);
     std::string second = read_string(body, offset);
+
     return {first, second};
 }
 
-std::tuple<std::string, std::string, std::string> Session::read_three_strings(const std::vector<uint8_t>& body) {
+std::tuple<std::string, std::string, std::vector<uint8_t>>
+Session::read_three_strings(const std::vector<uint8_t>& body) {
+
     size_t offset = 0;
+
     std::string first = read_string(body, offset);
     std::string second = read_string(body, offset);
-    std::string third = read_string(body, offset);
+    std::vector<uint8_t> third(body.begin() + offset, body.end());
+
     return {first, second, third};
 }
 
@@ -189,15 +198,6 @@ void Session::handle_packet() {
 			handle_upload_end(body_);
 			break;
 		}
-		case PacketType::Download: {
-			std::cout << "Download request from user " << username_ << "\n";
-			break;
-		}
-		case PacketType::ListFiles: {
-			std::cout << "List files request from user " << username_ << "\n";
-			break;
-		}
-
 		case PacketType::AddGame: {
 			handle_add_game(read_one_string(body_));
 			break;
@@ -211,8 +211,7 @@ void Session::handle_packet() {
 			break;
 		}
 		case PacketType::AddSave: {
-			auto [game_name, save_name, save_str] = read_three_strings(body_);
-			std::vector<uint8_t> save(save_str.begin(), save_str.end());
+			auto [game_name, save_name, save] = read_three_strings(body_);
 			handle_add_save(game_name, save_name, save);
 			break;
 		}
@@ -225,6 +224,12 @@ void Session::handle_packet() {
 			handle_list_saves(read_one_string(body_));
 			break;
 		}
+        case PacketType::DownloadSave: {
+            auto [game_name, save_name] = read_two_strings(body_);
+            handle_get_save(game_name, save_name);
+            break;
+		}
+
 		default: {
 			std::cout << "Unknown packet from client " << id_ << "\n";
 			break;
@@ -380,14 +385,14 @@ void Session::send_packet(const Packet& packet)
     );
 }
 
-void Session::handle_add_game(const std::string game_name)
+void Session::handle_add_game(const std::string& game_name)
 {
 	if(!server_.get_database().add_game(get_username(), game_name))
 	{
 
 	}
 }
-void Session::handle_delete_game(const std::string game_name)
+void Session::handle_delete_game(const std::string& game_name)
 {
 	if(!server_.get_database().delete_game(get_username(), game_name))
 	{
@@ -408,8 +413,8 @@ void Session::handle_add_save(const std::string& game_name,
 	   
 	}
 }
-void Session::handle_delete_save(const std::string game_name, 
-						const std::string save_name)
+void Session::handle_delete_save(const std::string& game_name, 
+						const std::string& save_name)
 {
 	if(!server_.get_database().delete_save(get_username(), game_name, save_name))
 	{
@@ -417,9 +422,16 @@ void Session::handle_delete_save(const std::string game_name,
 	}
 
 }
-void Session::handle_list_saves(const std::string game_name)
+void Session::handle_list_saves(const std::string& game_name)
 {
 	server_.get_database().get_saves(get_username(), game_name);
 	//send data to user 
+}
+
+ void handle_get_save(const std::string& game_name,
+                      const std::string& save_name,
+                      std::vector<uint8_t>& save_data)
+{
+
 }
 

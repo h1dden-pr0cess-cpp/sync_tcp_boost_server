@@ -48,16 +48,20 @@ private:
 
 	void handle_logout();
 
-	void handle_add_game(const std::string game_name);
-	void handle_delete_game(const std::string game_name);
+	void handle_add_game(const std::string& game_name);
+	void handle_delete_game(const std::string& game_name);
 	void handle_list_games();
 
 	void handle_add_save(const std::string& game_name, 
 						 const std::string& save_name, 
 					 	 const std::vector<uint8_t>& save);
-	void handle_delete_save(const std::string game_name, 
-							const std::string save_name);
-	void handle_list_saves(const std::string game_name);
+	void handle_delete_save(const std::string& game_name, 
+							const std::string& save_name);
+	void handle_list_saves(const std::string& game_name);
+
+    void handle_get_save(const std::string& game_name,
+                         const std::string& save_name,
+                         std::vector<uint8_t>& save_data);
 
 	void send_packet(const Packet& packet);
 	void save_file();

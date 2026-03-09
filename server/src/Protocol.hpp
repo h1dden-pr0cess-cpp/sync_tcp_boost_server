@@ -12,8 +12,6 @@ enum class PacketType : uint8_t
 	UploadStart      = 2,
     UploadChunk      = 3,
 	UploadEnd        = 4,
-    Download         = 5,
-    ListFiles        = 6,
 
 	AddGame			 = 10,
 	DeleteGame	     = 11,
@@ -21,6 +19,7 @@ enum class PacketType : uint8_t
 	AddSave          = 13,
 	DeleteSave       = 14,
 	ListSaves        = 15,
+    DownloadSave     = 16,
 	
     RegisterUser     = 20, 
     LoginWithPassword= 21, 
