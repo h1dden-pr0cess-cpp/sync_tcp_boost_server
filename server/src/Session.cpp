@@ -428,10 +428,14 @@ void Session::handle_list_saves(const std::string& game_name)
 	//send data to user 
 }
 
- void handle_get_save(const std::string& game_name,
-                      const std::string& save_name,
-                      std::vector<uint8_t>& save_data)
+ void Session::handle_get_save(const std::string& game_name,
+                      const std::string& save_name)    
 {
-
+    std::vector<uint8_t> save_data;
+    if(!server_.get_database().get_save(get_username(), game_name, save_name, save_data))
+    {
+        
+    }
+    
 }
 
