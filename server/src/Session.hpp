@@ -31,7 +31,7 @@ private:
 	read_one_string(const std::vector<uint8_t>& data); 
 	std::pair<std::string, std::string>
 	read_two_strings(const std::vector<uint8_t>& data);
-	std::tuple<std::string, std::string, std::string> 
+	std::tuple<std::string, std::string, std::vector<uint8_t>> 
 	read_three_strings(const std::vector<uint8_t>& data);
     
 
@@ -60,8 +60,7 @@ private:
 	void handle_list_saves(const std::string& game_name);
 
     void handle_get_save(const std::string& game_name,
-                         const std::string& save_name,
-                         std::vector<uint8_t>& save_data);
+                         const std::string& save_name);
 
 	void send_packet(const Packet& packet);
 	void save_file();
