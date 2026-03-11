@@ -152,6 +152,35 @@ void Session::read_body() {
 }
 
 
+void Session::send_packet(const Packet& packet)
+{
+	uint32_t size = static_cast<uint32_t>(packet.body.size());
+
+    auto buffer = std::make_shared<std::vector<uint8_t>>(1 + 4 + size);
+
+    (*buffer)[0] = static_cast<uint8_t>(packet.type);
+    std::memcpy(buffer->data() + 1, &size, sizeof(size));
+
+    if (size > 0)
+        std::memcpy(buffer->data() + 5, packet.body.data(), size);
+
+    auto self = shared_from_this();
+
+    boost::asio::async_write(
+        socket_,
+        boost::asio::buffer(*buffer),
+        [self, buffer](boost::system::error_code error, std::size_t)
+        {
+            if (error)
+			{
+				boost::system::error_code ec;
+				self->socket_.shutdown(ec);
+				self->socket_.lowest_layer().close(ec);
+			}
+        }
+    );
+}
+
 void Session::handle_packet() {
     PacketType type = static_cast<PacketType>(packet_type_);
 
@@ -161,6 +190,7 @@ void Session::handle_packet() {
         type != PacketType::LoginWithPassword &&
         type != PacketType::LoginWithToken)
     {
+        //go to page registration and login
         std::cout << "Client " << id_ << " not authorized\n";
         return;
     }
@@ -229,7 +259,6 @@ void Session::handle_packet() {
             handle_get_save(game_name, save_name);
             break;
 		}
-
 		default: {
 			std::cout << "Unknown packet from client " << id_ << "\n";
 			break;
@@ -251,7 +280,7 @@ void Session::handle_register(const std::string& username, const std::string& pa
         std::cout << "Registered user: " << username << "\n";
 
         Packet response;
-        response.type = PacketType::AuthResponse; 
+        response.type = PacketType::AuthResponse;
 		send_packet(response);
 
     } catch (const std::exception& e) {
@@ -264,7 +293,7 @@ void Session::handle_login_password(const std::string& username, const std::stri
     try {
         if (!server_.check_user(username, password_hash)) {
             std::cout << "Login failed: " << username << "\n";
-            // можно отправить пакет-ответ с ошибкой
+            //send error code 
             return;
         }
 
@@ -355,43 +384,14 @@ void Session::save_file()
 }
 
 
-
-void Session::send_packet(const Packet& packet)
-{
-	uint32_t size = static_cast<uint32_t>(packet.body.size());
-
-    auto buffer = std::make_shared<std::vector<uint8_t>>(1 + 4 + size);
-
-    (*buffer)[0] = static_cast<uint8_t>(packet.type);
-    std::memcpy(buffer->data() + 1, &size, sizeof(size));
-
-    if (size > 0)
-        std::memcpy(buffer->data() + 5, packet.body.data(), size);
-
-    auto self = shared_from_this();
-
-    boost::asio::async_write(
-        socket_,
-        boost::asio::buffer(*buffer),
-        [self, buffer](boost::system::error_code error, std::size_t)
-        {
-            if (error)
-			{
-				boost::system::error_code ec;
-				self->socket_.shutdown(ec);
-				self->socket_.lowest_layer().close(ec);
-			}
-        }
-    );
-}
-
 void Session::handle_add_game(const std::string& game_name)
 {
 	if(!server_.get_database().add_game(get_username(), game_name))
 	{
-
+        
 	}
 }
+
 void Session::handle_delete_game(const std::string& game_name)
 {
 	if(!server_.get_database().delete_game(get_username(), game_name))
@@ -399,11 +399,13 @@ void Session::handle_delete_game(const std::string& game_name)
 
 	}
 }
+
 void Session::handle_list_games()
 {
 	server_.get_database().get_games(get_username());
 	//send data to user
 }
+
 void Session::handle_add_save(const std::string& game_name, 
 					 const std::string& save_name, 
 					 const std::vector<uint8_t>& save)
@@ -422,6 +424,7 @@ void Session::handle_delete_save(const std::string& game_name,
 	}
 
 }
+
 void Session::handle_list_saves(const std::string& game_name)
 {
 	server_.get_database().get_saves(get_username(), game_name);
@@ -429,13 +432,12 @@ void Session::handle_list_saves(const std::string& game_name)
 }
 
  void Session::handle_get_save(const std::string& game_name,
-                      const std::string& save_name)    
+                               const std::string& save_name)    
 {
     std::vector<uint8_t> save_data;
     if(!server_.get_database().get_save(get_username(), game_name, save_name, save_data))
     {
         
-    }
-    
+    }   
 }
 
