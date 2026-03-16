@@ -34,6 +34,7 @@ add_executable(sync_server
     src/Server.cpp
     src/Session.cpp
     src/Database.cpp
+    src/Errors.cpp
 )
 
 target_include_directories(sync_server PRIVATE

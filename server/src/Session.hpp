@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <boost/asio/ssl.hpp>
+#include "Errors.hpp"
 
 class Server;
 
@@ -33,8 +34,7 @@ private:
 	read_two_strings(const std::vector<uint8_t>& data);
 	std::tuple<std::string, std::string, std::vector<uint8_t>> 
 	read_three_strings(const std::vector<uint8_t>& data);
-    
-
+   
     void handle_packet();
 	void handle_register(const std::string& username,
 						 const std::string& password_hash);
@@ -60,7 +60,8 @@ private:
 	void handle_list_saves(const std::string& game_name);
 
     void handle_get_save(const std::string& game_name,
-                         const std::string& save_name);
+                         const std::string& save_name,
+                         std::vector<uint8_t>& save);
 
 	void send_packet(const Packet& packet);
 	void save_file();
@@ -80,7 +81,9 @@ private:
 
     uint8_t packet_type_;
     uint32_t packet_size_;  
-    std::vector<uint8_t> body_; 
+    std::vector<uint8_t> body_;
+
+    Errors errors;
 };
 
 #endif // SESSION_HPP

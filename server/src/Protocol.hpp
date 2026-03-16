@@ -30,18 +30,6 @@ enum class PacketType : uint8_t
     Error            = 99
 };
 
-enum class ErrorCode : uint16_t {
-    Unknown = 0,
-
-    InvalidPacket = 1,
-    InvalidToken = 2,
-    UserNotFound = 3,
-    WrongPassword = 4,
-    GameNotFound = 5,
-    SaveNotFound = 6,
-
-    DatabaseError = 10
-};
 
 struct Packet
 {

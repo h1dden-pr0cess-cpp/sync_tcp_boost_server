@@ -1,9 +1,9 @@
 #include "Session.hpp"
 #include "Server.hpp"
+#include "Errors.hpp"
 
 Session::Session(int id, boost::asio::ip::tcp::socket socket, Server& server)
-    : id_(id),
-      socket_(std::move(socket), server.get_ssl_context()),
+    : id_(id), socket_(std::move(socket), server.get_ssl_context()),
 	  server_(server)
 {}
 
@@ -256,7 +256,8 @@ void Session::handle_packet() {
 		}
         case PacketType::DownloadSave: {
             auto [game_name, save_name] = read_two_strings(body_);
-            handle_get_save(game_name, save_name);
+            std::vector<uint8_t> save;
+            handle_get_save(game_name, save_name, save);
             break;
 		}
 		default: {
@@ -432,12 +433,14 @@ void Session::handle_list_saves(const std::string& game_name)
 }
 
  void Session::handle_get_save(const std::string& game_name,
-                               const std::string& save_name)    
+                               const std::string& save_name,
+                               std::vector<uint8_t>& save)    
 {
-    std::vector<uint8_t> save_data;
-    if(!server_.get_database().get_save(get_username(), game_name, save_name, save_data))
+    if(!server_.get_database().get_save(get_username(), game_name, save_name, save))
     {
-        
+        send_packet(errors.send_error(ErrorCode::SaveNotFound));
+        return;
     }   
 }
+
 
