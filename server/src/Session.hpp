@@ -35,6 +35,8 @@ private:
 	std::tuple<std::string, std::string, std::vector<uint8_t>> 
 	read_three_strings(const std::vector<uint8_t>& data);
    
+    std::vector<uint8_t> convert(const std::vector<std::string>& string);
+
     void handle_packet();
 	void handle_register(const std::string& username,
 						 const std::string& password_hash);

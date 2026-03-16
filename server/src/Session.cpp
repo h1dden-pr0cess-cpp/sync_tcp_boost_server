@@ -79,6 +79,18 @@ Session::read_three_strings(const std::vector<uint8_t>& body) {
     return {first, second, third};
 }
 
+
+//convert str to vector
+std::vector<uint8_t> Session::convert(const std::vector<std::string>& str)
+{
+    std::vector<uint8_t> vector;
+
+    for (const auto& s : str) {
+        vector.insert(vector.end(), s.begin(), s.end());
+    }
+
+    return vector;
+}
 void Session::read_header() {
     auto self = shared_from_this();
 
@@ -261,8 +273,8 @@ void Session::handle_packet() {
             break;
 		}
 		default: {
-			std::cout << "Unknown packet from client " << id_ << "\n";
-			break;
+			send_packet(errors.send_error(ErrorCode::Unknown));
+            break;
 		}
 	}
 }
@@ -270,8 +282,7 @@ void Session::handle_packet() {
 void Session::handle_register(const std::string& username, const std::string& password_hash) {
     try {
         if (server_.user_exists(username)) {
-            std::cout << "User already exists: " << username << "\n";
-            // можно отправить пакет-ответ с ошибкой
+            send_packet(errors.send_error(ErrorCode::UserAlreadyExist));
             return;
         }
 
@@ -293,8 +304,7 @@ void Session::handle_login_password(const std::string& username, const std::stri
 {
     try {
         if (!server_.check_user(username, password_hash)) {
-            std::cout << "Login failed: " << username << "\n";
-            //send error code 
+            send_packet(errors.send_error(ErrorCode::InvalidLogin));
             return;
         }
 
@@ -320,11 +330,11 @@ void Session::handle_login_token(const std::string& token)
     try {
         std::string user;
 		if (!server_.validate_token(token, user)) {
-            std::cout << "Invalid token from client " << id_ << "\n";
-            return; // токен неверный — отказ
+            send_packet(errors.send_error(ErrorCode::InvalidToken));
+            return; //invalid token 
         }
 
-        // Токен валиден
+        //valid token
         authorized_ = true;
         username_ = user;
 
@@ -389,7 +399,7 @@ void Session::handle_add_game(const std::string& game_name)
 {
 	if(!server_.get_database().add_game(get_username(), game_name))
 	{
-        
+        send_packet(errors.send_error(ErrorCode::CannotAddGame));
 	}
 }
 
@@ -397,14 +407,16 @@ void Session::handle_delete_game(const std::string& game_name)
 {
 	if(!server_.get_database().delete_game(get_username(), game_name))
 	{
-
+        send_packet(errors.send_error(ErrorCode::GameNotFound));
 	}
 }
 
 void Session::handle_list_games()
 {
-	server_.get_database().get_games(get_username());
-	//send data to user
+    Packet response; 
+	response.type = PacketType::ListGames; 
+	response.body = convert(server_.get_database().get_games(get_username()));
+	send_packet(response);
 }
 
 void Session::handle_add_save(const std::string& game_name, 
@@ -413,23 +425,25 @@ void Session::handle_add_save(const std::string& game_name,
 {
     if(!server_.get_database().add_save(get_username(), game_name, save_name, save))
 	{
-	   
+        send_packet(errors.send_error(ErrorCode::CannotAddSave));       
 	}
 }
 void Session::handle_delete_save(const std::string& game_name, 
-						const std::string& save_name)
+						         const std::string& save_name)
 {
 	if(!server_.get_database().delete_save(get_username(), game_name, save_name))
 	{
-
+        send_packet(errors.send_error(ErrorCode::SaveNotFound));
 	}
 
 }
 
 void Session::handle_list_saves(const std::string& game_name)
 {
-	server_.get_database().get_saves(get_username(), game_name);
-	//send data to user 
+	Packet response; 
+	response.type = PacketType::ListSaves; 
+	response.body = convert(server_.get_database().get_saves(get_username(), game_name));
+	send_packet(response);
 }
 
  void Session::handle_get_save(const std::string& game_name,

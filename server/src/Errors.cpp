@@ -1,7 +1,7 @@
 #include "Errors.hpp"
 
 
-Packet Errors::send_error(ErrorCode& code)
+Packet Errors::send_error(ErrorCode code)
 {
     std::vector<uint8_t> error;
     write_error(error, code);
@@ -26,14 +26,13 @@ switch(static_cast<ErrorCode>(error_type)) {
             convert_error(error, "Token error"); 
             return;
         }
-        case ErrorCode::UserNotFound:
+        case ErrorCode::UserAlreadyExist:
         {
-            convert_error(error, "User not found");
-            return;
+            convert_error(error, "User already exist");
         }
-        case ErrorCode::WrongPassword:
+        case ErrorCode::InvalidLogin:
         {
-            convert_error(error, "Wrong password");
+            convert_error(error, "Invalid login");
             return;
         }
         case ErrorCode::GameNotFound:
@@ -41,12 +40,26 @@ switch(static_cast<ErrorCode>(error_type)) {
             convert_error(error, "Game not found");
             return;
         }
+        case ErrorCode::CannotAddGame:
+        {
+            convert_error(error, "Cannot add game");
+        }
 		case ErrorCode::SaveNotFound: 
         {
             convert_error(error, "Save not found");
 			return;
 		}
-        deafault:
+        case ErrorCode::CannotAddSave:
+        {
+            convert_error(error, "Cannot add save");
+            return;
+        }
+        case ErrorCode::UnknownPacket:
+        {
+            convert_error(error, "Unknown packet");
+            return;
+        }
+            deafault:
         {
             convert_error(error, "Unknown error");
             return;
